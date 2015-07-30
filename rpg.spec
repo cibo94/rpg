@@ -7,6 +7,7 @@ URL:            https://github.com/rh-lab-q/rpg
 Source:         %{name}-%{version}.tar.gz
 BuildRequires:  cmake
 BuildRequires:  python3-nose
+BuildRequires:  python3-coverage
 BuildRequires:  python3-devel
 BuildRequires:  python3 >= 3.4
 BuildRequires:  python3-qt5
@@ -60,6 +61,7 @@ make install DESTDIR=%{RPM_BUILD_ROOT}
 %check
 make ARGS="-V" test-unit
 make ARGS="-V" test-long
+make coverage
 
 %files
 %{_bindir}/rpg

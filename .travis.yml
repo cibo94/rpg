@@ -2,6 +2,7 @@ lang: python
 branches:
   only:
   - master
+  - Coveralls
 notifications:
   email:
     on_success: never
@@ -25,5 +26,9 @@ install:
 before_script:
 - sudo cp rel-eng/travis/mock/rpg.cfg /etc/mock/
 - git config user.email "travis@localhost" && git config user.name "Travis"
-script: rel-eng/travis/build.sh
-after_success: rel-eng/travis/upload.sh
+script:
+- rel-eng/travis/build.sh
+- sudo mock --resultdir=/tmp/mock/rpg -r rpg --copyout "/builddir/build/BUILD/*/.coverage" .
+after_success:
+- rel-eng/travis/upload.sh
+- bash <(curl -s https://codecov.io/bash) -f .coverage

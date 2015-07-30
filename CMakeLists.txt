@@ -60,6 +60,14 @@ IF (EXISTS ${PROJECT_SOURCE_DIR}/tests)
         ADD_SUBDIRECTORY (tests)
         ADD_CUSTOM_TARGET (test-unit COMMAND ${CMAKE_CTEST_COMMAND} WORKING_DIRECTORY tests/unit)
         ADD_CUSTOM_TARGET (test-long COMMAND ${CMAKE_CTEST_COMMAND} WORKING_DIRECTORY tests/long)
+        ADD_CUSTOM_TARGET (coverage
+            COMMAND ${NoseProg}
+                     --verbose
+                     --with-coverage
+                     --cover-package=rpg
+                       ${PROJECT_SOURCE_DIR}/tests/unit/
+                      -w ${PROJECT_SOURCE_DIR}
+            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
         ADD_CUSTOM_TARGET (test-mock COMMAND ${CMAKE_CTEST_COMMAND} WORKING_DIRECTORY tests/mock_build)
     ELSE ()
         MESSAGE (WARNING "Nosetests is missing! - no tests available")

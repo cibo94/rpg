@@ -40,7 +40,7 @@ echo "SRPM created: $srpm"
 echo -en "travis_fold:start:$package_basename-mock\\r"
 echo "Running mock"
 # build SRPM
-sudo mock -r rpg --resultdir=/tmp/mock/$package_basename --arch=noarch --rebuild $srpm >temp.mock_out 2>&1 &
+sudo mock --no-cleanup-after -r rpg --resultdir=/tmp/mock/$package_basename --arch=noarch --rebuild $srpm >temp.mock_out 2>&1 &
 mock_pid=$!
 secs=0
 while ps -p $mock_pid > /dev/null; do
