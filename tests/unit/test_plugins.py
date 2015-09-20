@@ -13,8 +13,7 @@ from unittest import mock
 from rpg.plugins.project_builder.cmake import CMakePlugin
 from rpg.plugins.project_builder.setuptools import SetuptoolsPlugin
 from rpg.plugins.project_builder.autotools import AutotoolsPlugin
-from rpg.command import Command
-from os.path import isfile, isdir
+from rpg.plugins.utilities.dev_assistant import DevAssistant
 
 
 class MockSack:
@@ -25,10 +24,9 @@ class MockSack:
 
 class MockedPackage:
 
-    def __init__(self, package):
-        self.name = package
-
-    files = []
+    def __init__(self, name, files=[]):
+        self.name = name
+        self.files = files
 
 
 class MockedLogging:
@@ -43,13 +41,28 @@ class MockedLogging:
 class MockedDNFQuery:
 
     def filter(self, **kwd):
-        if kwd["file__glob"] ==\
+        if "file__glob" in kwd and kwd["file__glob"] ==\
                 "/usr/lib/python3.4/site-packages/dnf/conf/read.py":
             return [MockedPackage("python3-dnf")]
+        if "name" in kwd:
+            return [
+                MockedPackage(
+                    kwd["name"],
+                    self._pkg_files[kwd["name"]])]
         raise IndexError
 
     def available(self):
         return self
+
+    _pkg_files = {
+        "gcc": ["/bin/gcc"],
+        "glibc-devel": ["/bin/glibc-devel"],
+        "automake": ["/bin/automake"],
+        "autoconf": ["/bin/autoconf"],
+        "valgrind": ["/bin/valgrind"],
+        "gdb": ["/bin/gdb"],
+        "strace": ["/bin/strace"]
+    }
 
 
 class FindPatchPluginTest(PluginTestCase):
@@ -199,3 +212,18 @@ class FindPatchPluginTest(PluginTestCase):
         self.assertEqual(
             str(self.spec.install),
             "make install DESTDIR=\"$RPM_BUILD_ROOT\"")
+
+    def test_devassistant(self):
+        dev = DevAssistant()
+        self.spec.BuildRequires = self.spec.Requires = set()
+        dev.extracted(self.test_project_dir / "c", self.spec, MockSack())
+        self.assertEqual(self.spec.Requires,
+                         {
+                             "gcc",
+                             "glibc-devel",
+                             "automake",
+                             "autoconf",
+                             "valgrind",
+                             "gdb",
+                             "strace"
+                         })
