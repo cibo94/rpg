@@ -20,11 +20,8 @@ class AutotoolsPlugin(Plugin):
             and appends dependencies """
         if (project_dir / "configure").is_file():
             logging.debug('configure found')
-            build = Command()
-            build.append("./configure")
-            build.append("make")
-            spec.build = build
-            spec.install = Command('make install DESTDIR="$RPM_BUILD_ROOT"')
+            spec.build.append(["%{configure}", "%{make_build}"])
+            spec.install.append(['make install DESTDIR="$RPM_BUILD_ROOT"'])
         elif ((project_dir / "configure.ac").is_file() and
               (project_dir / "Makefile.am").is_file()):
             logging.debug('configure.ac and Makefile.am found')
@@ -35,8 +32,8 @@ class AutotoolsPlugin(Plugin):
                 build.append("./autogen.sh")
             else:
                 build.append("autoreconf --install --force")
-            build.append("./configure")
-            build.append("make")
+            build.append("%{configure}")
+            build.append("%{make_build}")
             spec.build = build
             spec.install = Command("make install DESTDIR=\"$RPM_BUILD_ROOT\"")
         elif (project_dir / "configure.ac").is_file():
