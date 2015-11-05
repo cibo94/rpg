@@ -9,7 +9,6 @@ from rpg.plugins.lang.c import CPlugin
 from rpg.plugins.source_loader.tar import TarPlugin
 from rpg.plugins.source_loader.zip import ZipPlugin
 from rpg.spec import Spec
-from unittest import mock
 from rpg.plugins.project_builder.cmake import CMakePlugin
 from rpg.plugins.project_builder.setuptools import SetuptoolsPlugin
 from rpg.plugins.project_builder.autotools import AutotoolsPlugin
@@ -34,15 +33,6 @@ class MockedPackage:
     files = []
 
 
-class MockedLogging:
-
-    called = 0
-
-    @classmethod
-    def log(cls, *args, **kwargs):
-        cls.called += 1
-
-
 class MockedDNFQuery:
 
     def filter(self, **kwd):
@@ -53,6 +43,33 @@ class MockedDNFQuery:
 
     def available(self):
         return self
+
+
+class MockedPath:
+
+    MACROED_PATHS = {
+        'usr/bin/p': '%{_bindir}/p',
+        'usr/include/i.h': '%{_includedir}/i.h',
+        'usr/include/befa/file.hpp': '%{_includedir}/befa/file.hpp'
+        # This cannot be tested on 32-bit systems:
+        #   "usr/lib64/libl.so": "%{_libdir}/libl.so",
+        # same with python sitelib and sitearch
+    }
+
+    def __init__(self, path):
+        self.path = path
+
+    def __str__(self):
+        return self.path
+
+    def glob(self, *args, **kwargs):
+        return [MockedPath(f) for f in self.MACROED_PATHS.keys()]
+
+    def is_file(self, *args, **kwargs):
+        return self.path != '~'
+
+    def relative_to(self, *args, **kwargs):
+        return self.path
 
 
 class FindPatchPluginTest(PluginTestCase):
@@ -80,14 +97,11 @@ class FindPatchPluginTest(PluginTestCase):
 
     def test_find_files(self):
         plugin = FindFilePlugin()
-        plugin.installed(self.test_project_dir / "setuptools",
+        plugin.installed(MockedPath(self.test_project_dir / "installed"),
                          self.spec, self.sack)
-        files = sorted([
-            ("/setup.py", None, None),
-            ("/testscript.py", None, None)
-        ])
         self.assertEqual(sorted(list(self.spec.files)),
-                         files)
+                         sorted([(MockedPath.MACROED_PATHS[f], None, None)
+                                 for f in MockedPath.MACROED_PATHS]))
 
     def test_find_translation_file(self):
         plugin = FindTranslationPlugin()
@@ -112,7 +126,6 @@ class FindPatchPluginTest(PluginTestCase):
             r"/usr/lib.*/python.*/lib-dynload/math\.cpython.*\.so", req)
             for req in self.spec.required_files))
 
-    @mock.patch("logging.log", new=MockedLogging.log)
     def test_files_to_pkgs(self):
         ftpp = FilesToPkgsPlugin()
         self.spec.Requires = set()

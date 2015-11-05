@@ -35,6 +35,15 @@ class RpgTestCase(TestCase):
 
         self.assertEqual(_get_zip_files(Path(z)), _get_dir_files(Path(d)))
 
+    def assertFileDoesNotExists(self, file):
+        self.assertTrue(not (file).exists(),
+                        msg="File does exists (but shouldn't) '" +
+                            str(file) + "'!")
+
+    def assertFileExists(self, file):
+        self.assertTrue((file).exists(),
+                        msg="File does not exists '" + str(file) + "'!")
+
 
 class PluginTestCase(RpgTestCase):
     sack = mock.MagicMock()
