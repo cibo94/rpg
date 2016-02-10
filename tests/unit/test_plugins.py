@@ -17,6 +17,7 @@ from pathlib import Path
 from shutil import rmtree
 import re
 import tempfile
+from os import remove
 
 
 class MockSack:
@@ -118,12 +119,25 @@ class FindPatchPluginTest(PluginTestCase):
         self.assertEqual(str(self.spec.post), lib)
         self.assertEqual(str(self.spec.postun), lib)
 
+    def test_python_find_objects(self):
+        plugin = PythonPlugin()
+        objfiles = [
+            self.test_project_dir / "py" / "requires" / "sourcecode2.pyo",
+            self.test_project_dir / "py" / "requires" / "sourcecode2.pyc"
+        ]
+        plugin.installed(
+            self.test_project_dir / "py" / "requires", self.spec, self.sack)
+        for obj in objfiles:
+            self.assertFileExists(obj)
+            if obj.exists():
+                remove(str(obj))
+
     def test_python_find_requires(self):
         plugin = PythonPlugin()
         plugin.patched(self.test_project_dir / "py" / "requires",
                        self.spec, self.sack)
         self.assertTrue(any(re.match(
-            r"/usr/lib.*/python.*/lib-dynload/math\.cpython.*\.so", req)
+            r"/usr/lib.*/python.*/lib-dynload/math.*\.so", req)
             for req in self.spec.required_files))
 
     def test_files_to_pkgs(self):
