@@ -121,6 +121,7 @@ class FindPatchPluginTest(PluginTestCase):
 
     def test_python_find_objects(self):
         plugin = PythonPlugin()
+        plugin.python_interpret = "python"
         objfiles = [
             self.test_project_dir / "py" / "requires" / "sourcecode2.pyo",
             self.test_project_dir / "py" / "requires" / "sourcecode2.pyc"

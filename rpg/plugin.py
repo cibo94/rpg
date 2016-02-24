@@ -25,3 +25,6 @@ class Plugin:
         def mock_recover(self, log, spec):
             pass
     """
+
+    # default python interpret - may be changed
+    python_interpret = "python3"

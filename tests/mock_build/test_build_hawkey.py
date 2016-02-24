@@ -1,4 +1,5 @@
 from tests.support import RpgTestCase
+from rpg.plugin import Plugin
 from rpg import Base
 import os
 
@@ -6,6 +7,8 @@ import os
 class BuildHawkeyTest(RpgTestCase):
 
     def test_hawkey_project(self):
+        python_interpret_backup = Plugin.python_interpret
+        Plugin.python_interpret = "python2"
         self.base = Base()
         self.base.sack = self.base.load_dnf_sack()
         self.base.load_plugins()
@@ -38,3 +41,4 @@ class BuildHawkeyTest(RpgTestCase):
             self.base.target_distro, self.base.target_arch)
         os.remove(str(self.base.srpm_path))
         os.remove(str(self.base.spec_path))
+        Plugin.python_interpret = python_interpret_backup
